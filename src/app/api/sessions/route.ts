@@ -12,14 +12,20 @@ export async function POST(request: NextRequest) {
     // Validar datos de entrada
     const validatedData = sessionSchema.parse(body);
 
+    // Calcular endTime si no se proporciona (40 minutos por defecto)
+    const startTime = new Date(validatedData.startTime);
+    const endTime = validatedData.endTime 
+      ? new Date(validatedData.endTime) 
+      : new Date(startTime.getTime() + 40 * 60 * 1000);
+
     // Verificar que el horario no esté ocupado
     const existingSession = await prisma.session.findFirst({
       where: {
         startTime: {
-          lte: new Date(validatedData.endTime),
+          lte: endTime,
         },
         endTime: {
-          gte: new Date(validatedData.startTime),
+          gte: startTime,
         },
         status: {
           in: ['PENDING', 'CONFIRMED'],
@@ -38,8 +44,8 @@ export async function POST(request: NextRequest) {
     const session = await prisma.session.create({
       data: {
         userId: user.userId,
-        startTime: new Date(validatedData.startTime),
-        endTime: new Date(validatedData.endTime),
+        startTime: startTime,
+        endTime: endTime,
         details: validatedData.details,
         status: 'PENDING',
       },
