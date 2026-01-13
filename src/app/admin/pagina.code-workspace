@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "pagina",
+			"path": "../../.."
+		},
+		{
+			"name": "Assets",
+			"path": "../../../../Assets"
+		}
+	],
+	"settings": {}
+}

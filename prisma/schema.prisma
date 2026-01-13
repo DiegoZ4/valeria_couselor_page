@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  firstName   String
+  lastName    String
+  phone       String?
+  role        Role     @default(PATIENT)
+  refreshToken String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String      @id @default(cuid())
+  startTime    DateTime
+  endTime      DateTime
+  userId       String?
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  observations String?
+  details      String?
+  status       SessionStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("sessions")
+}
+
+model TimeSlot {
+  id          String      @id @default(cuid())
+  dayOfWeek   Int?        // 0-6 (Sunday-Saturday) for recurring slots, null for one-time
+  startTime   DateTime    // For one-time slots, full datetime. For recurring, just time component matters
+  endTime     DateTime
+  isRecurring Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("time_slots")
+}
+
+enum Role {
+  ADMIN
+  PATIENT
+}
+
+enum SessionStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
