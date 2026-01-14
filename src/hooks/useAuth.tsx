@@ -31,25 +31,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth state from localStorage after hydration
   useEffect(() => {
-    setIsHydrated(true);
-    
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('accessToken');
-      const storedUser = localStorage.getItem('user');
+    const initAuth = () => {
+      setIsHydrated(true);
       
-      if (storedToken && storedUser) {
-        try {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
+      if (typeof window !== 'undefined') {
+        const storedToken = localStorage.getItem('accessToken');
+        const storedUser = localStorage.getItem('user');
+        
+        console.log('Initializing auth:', { storedToken: !!storedToken, storedUser: !!storedUser });
+        
+        if (storedToken && storedUser) {
+          try {
+            const userData = JSON.parse(storedUser);
+            console.log('Restored user:', userData.firstName);
+            setToken(storedToken);
+            setUser(userData);
+          } catch (error) {
+            console.error('Error parsing stored user data:', error);
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+          }
         }
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    // Small delay to ensure proper hydration
+    const timer = setTimeout(initAuth, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const login = async (email: string, password: string) => {
